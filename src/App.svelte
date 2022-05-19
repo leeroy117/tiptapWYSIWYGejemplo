@@ -6,9 +6,12 @@
   import Dropcursor from "@tiptap/extension-dropcursor";
   import Code from "@tiptap/extension-code";
   import Link from "@tiptap/extension-link";
+  import Modal, { getModal } from "./Modal.svelte";
+  import { Button, TabContent, TabPane } from "sveltestrap";
 
   let element;
   let editor;
+  let fileinput;
 
   onMount(() => {
     editor = new Editor({
@@ -36,6 +39,16 @@
       editor.destroy();
     }
   });
+
+  const onFileSelected = (e) => {
+    let image = e.target.files[0];
+    let reader = new FileReader();
+    reader.readAsDataURL(image);
+    reader.onload = (e) => {
+      console.log(reader);
+      // avatar = e.target.result;
+    };
+  };
 
   const setLink = () => {
     const previousUrl = editor.getAttributes("link").href;
@@ -115,8 +128,27 @@
     unsetLink
   </button>
 
-  <button on:click={addImage}>add image from URL</button>
+  <button on:click={() => getModal().open()}>add image</button>
 {/if}
+
+<Modal>
+  <h1>Hello Leeroy!</h1>
+  <TabContent>
+    <TabPane tabId="link" tab="Link" active>
+      <h2>Link</h2>
+      <Button primary on:click={addImage}>Click to Copy</Button>
+    </TabPane>
+    <TabPane tabId="simpleUpload" tab="Upload (simple)">
+      <h2>Upload (simple)</h2>
+      <input
+        type="file"
+        accept=".jpg, .jpeg, .png"
+        on:change={(e) => onFileSelected(e)}
+        bind:this={fileinput}
+      />
+    </TabPane>
+  </TabContent>
+</Modal>
 
 <div bind:this={element} />
 hello Dan Hi Ana
