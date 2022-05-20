@@ -15,7 +15,7 @@
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
-    "svelte": "^3.0.0"
+    "svelte": "^3.48.0"
   },
   "dependencies": {
     "@tiptap/core": "^2.0.0-beta.176",
@@ -24,6 +24,7 @@
     "@tiptap/extension-image": "^2.0.0-beta.27",
     "@tiptap/extension-link": "^2.0.0-beta.38",
     "@tiptap/starter-kit": "^2.0.0-beta.185",
-    "sirv-cli": "^2.0.0"
+    "sirv-cli": "^2.0.0",
+    "sveltestrap": "^5.9.0"
   }
 }

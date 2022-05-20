@@ -6,9 +6,12 @@
   import Dropcursor from "@tiptap/extension-dropcursor";
   import Code from "@tiptap/extension-code";
   import Link from "@tiptap/extension-link";
+  import Modal, { getModal } from "./Modal.svelte";
+  import { Button, TabContent, TabPane } from "sveltestrap";
 
   let element;
   let editor;
+  let myImage;
 
   onMount(() => {
     editor = new Editor({
@@ -37,6 +40,16 @@
     }
   });
 
+  const onFileSelected = (e) => {
+    let image = e.target.files[0];
+    let reader = new FileReader();
+    reader.readAsDataURL(image);
+    reader.onload = (e) => {
+      console.log(reader);
+      // avatar = e.target.result;
+    };
+  };
+
   const setLink = () => {
     const previousUrl = editor.getAttributes("link").href;
     const url = window.prompt("URL", previousUrl);
@@ -62,6 +75,35 @@
       editor.chain().focus().setImage({ src: url }).run();
     }
   };
+
+  async function uploadImage() {
+    const fileInput = document.querySelector("#myImage");
+    const formData = new FormData();
+
+    formData.append("myImage", fileInput.files[0]);
+    console.log(fileInput.files[0]);
+
+    const res = await fetch("http://localhost:2002/", {
+      method: "POST",
+      // headers: new Headers({
+      //   "Content-Type": "undefined",
+      // }),
+      body: formData,
+    });
+
+    res
+      ?.json()
+      .then((result) => {
+        console.log(result.filename);
+
+        const urlImage = "http://localhost:2002/" + result.filename;
+
+        editor.chain().focus().setImage({ src: urlImage }).run();
+      })
+      .catch((error) => {
+        alert(error);
+      });
+  }
 </script>
 
 {#if editor}
@@ -115,8 +157,32 @@
     unsetLink
   </button>
 
-  <button on:click={addImage}>add image from URL</button>
+  <button on:click={() => getModal().open()}>add image</button>
 {/if}
+
+<Modal>
+  <h1>Hello Leeroy!</h1>
+  <TabContent>
+    <TabPane tabId="link" tab="Link" active>
+      <h2>Link</h2>
+      <Button primary on:click={addImage}>Click to Copy</Button>
+    </TabPane>
+    <TabPane tabId="simpleUpload" tab="Upload (simple)">
+      <h2>Upload (simple)</h2>
+      <form>
+        <input
+          type="file"
+          accept=".jpg, .jpeg"
+          on:change={(e) => onFileSelected(e)}
+          bind:value={myImage}
+          id="myImage"
+          name="myImage"
+        />
+        <Button primary type="button" on:click={uploadImage}>Upload</Button>
+      </form>
+    </TabPane>
+  </TabContent>
+</Modal>
 
 <div bind:this={element} />
 hello Dan Hi Ana
