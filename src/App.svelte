@@ -11,7 +11,7 @@
 
   let element;
   let editor;
-  let fileinput;
+  let myImage;
 
   onMount(() => {
     editor = new Editor({
@@ -75,6 +75,35 @@
       editor.chain().focus().setImage({ src: url }).run();
     }
   };
+
+  async function uploadImage() {
+    const fileInput = document.querySelector("#myImage");
+    const formData = new FormData();
+
+    formData.append("myImage", fileInput.files[0]);
+    console.log(fileInput.files[0]);
+
+    const res = await fetch("http://localhost:2002/", {
+      method: "POST",
+      // headers: new Headers({
+      //   "Content-Type": "undefined",
+      // }),
+      body: formData,
+    });
+
+    res
+      ?.json()
+      .then((result) => {
+        console.log(result.filename);
+
+        const urlImage = "http://localhost:2002/" + result.filename;
+
+        editor.chain().focus().setImage({ src: urlImage }).run();
+      })
+      .catch((error) => {
+        alert(error);
+      });
+  }
 </script>
 
 {#if editor}
@@ -140,12 +169,17 @@
     </TabPane>
     <TabPane tabId="simpleUpload" tab="Upload (simple)">
       <h2>Upload (simple)</h2>
-      <input
-        type="file"
-        accept=".jpg, .jpeg, .png"
-        on:change={(e) => onFileSelected(e)}
-        bind:this={fileinput}
-      />
+      <form>
+        <input
+          type="file"
+          accept=".jpg, .jpeg"
+          on:change={(e) => onFileSelected(e)}
+          bind:value={myImage}
+          id="myImage"
+          name="myImage"
+        />
+        <Button primary type="button" on:click={uploadImage}>Upload</Button>
+      </form>
     </TabPane>
   </TabContent>
 </Modal>
