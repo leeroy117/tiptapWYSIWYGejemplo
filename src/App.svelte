@@ -2,12 +2,14 @@
   import { onMount, onDestroy } from "svelte";
   import { Editor } from "@tiptap/core";
   import StarterKit from "@tiptap/starter-kit";
-  import Image from "@tiptap/extension-image";
+  import { Image as ImageTippap } from "@tiptap/extension-image";
   import Dropcursor from "@tiptap/extension-dropcursor";
   import Code from "@tiptap/extension-code";
   import Link from "@tiptap/extension-link";
   import Modal, { getModal } from "./Modal.svelte";
   import { Button, TabContent, TabPane } from "sveltestrap";
+  import Resizer from "react-image-file-resizer";
+  import axios from "axios";
 
   let element;
   let editor;
@@ -18,7 +20,7 @@
       element: element,
       extensions: [
         StarterKit,
-        Image,
+        ImageTippap,
         Dropcursor,
         Code,
         Link.configure({
@@ -104,6 +106,55 @@
         alert(error);
       });
   }
+
+  const resize = Resizer.imageFileResizer;
+  let rawImgs;
+
+  let resizeImage = async (file) => {
+    let _URL = window.URL || window.webkitURL;
+    let img = new Image();
+
+    let width = 0;
+    let height = 0;
+
+    img.src = _URL.createObjectURL(file);
+
+    console.log("natural", img.clientHeight);
+
+    img.onload = function () {
+      width = img.width;
+      height = img.height;
+
+      console.log("ancho: " + this.width + " " + "alto: " + height);
+    }; //onload
+
+    // console.log("ancho_fuera", width);
+
+    // return new Promise((resolve, reject) => {
+    //   resize(file, 1200, 500, "JPEG", 100, 0, (uri) => resolve(uri), "blob");
+    // });
+    // return result;
+  };
+
+  let resizeImages = async (files) => {
+    let resized = [];
+    for (let i = 0; i < files.length; i++)
+      resized.push(await resizeImage(files[i]));
+    return resized;
+  };
+
+  let onSubmit = async () => {
+    let formData = new FormData();
+
+    console.log(rawImgs);
+
+    let resizedImgs = await resizeImages(rawImgs);
+
+    resizedImgs.forEach((resizedImg) => formData.append("myImage", resizedImg));
+
+    let res = await axios.post("http://localhost:2002/", formData);
+    console.log(res.data);
+  };
 </script>
 
 {#if editor}
@@ -174,11 +225,10 @@
           type="file"
           accept=".jpg, .jpeg"
           on:change={(e) => onFileSelected(e)}
-          bind:value={myImage}
-          id="myImage"
-          name="myImage"
+          bind:files={rawImgs}
+          multiple
         />
-        <Button primary type="button" on:click={uploadImage}>Upload</Button>
+        <Button primary type="button" on:click={onSubmit}>Upload</Button>
       </form>
     </TabPane>
   </TabContent>
@@ -186,6 +236,8 @@
 
 <div bind:this={element} />
 hello Dan Hi Ana
+
+<div id="prueba" />
 
 <style>
   button.active {
